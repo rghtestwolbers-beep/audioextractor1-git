@@ -1,0 +1,33 @@
+steps:
+  # Build container image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - europe-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/audioextractor1-git:$COMMIT_SHA
+      - .
+
+  # Push container image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - europe-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/audioextractor1-git:$COMMIT_SHA
+
+  # Deploy to Cloud Run
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - audioextractor1-git
+      - --image=europe-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/audioextractor1-git:$COMMIT_SHA
+      - --region=europe-west1
+      - --platform=managed
+      - --allow-unauthenticated
+      - --set-env-vars=BUCKET=n8n-video-chunks-socialclips
+
+images:
+  - europe-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/audioextractor1-git:$COMMIT_SHA
+
+options:
+  logging: CLOUD_LOGGING_ONLY
